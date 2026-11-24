@@ -136,7 +136,9 @@ prompt/vibe-trading.md         移植的领域提示词（正文 ≈6.8k tok；�
 toolsets.json                 staticCore 5 + 9 组 + virtualTools 6 + credentialGated + hidden/dropped + localTools
 client.js                    客户端半：状态芯片 + turnTail 门禁面板 + 插件页「配置」表单
 tests/                        178 个 node:test（import dist/）
+scripts/dev/release.mjs      发版辅助：status / bump / verify / tag / push --yes（不执行 npm publish）
 scripts/validate/             check_manifest / check_worker / check_grounding / capture_worker_surface / capture_mcp_surface / check_pin / check_docs_links / check_private / gen_tool_surface_doc
+.agents/skills/release-npm/   发版 skill：只改 package.json、单独推 tag、OIDC 发布与自动 Release
 docs/                         见 [docs/README.md](docs/README.md)；工具面逐条见 [docs/tool-surface.md](docs/tool-surface.md)
 ```
 

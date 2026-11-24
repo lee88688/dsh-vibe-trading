@@ -156,6 +156,10 @@ composer 状态芯片（窄屏 ≤560px 只留图标）、门禁 `turnTail` 面�
    `@latest` 换成 `@<version>`。源码安装仍可用 `clone + pnpm install + target=<绝对路径>`。发布后按 README
    的安装步骤跑一遍冷启动验证。
 
+**半自动辅助**：`pnpm release:status` → `pnpm release:bump patch` → `pnpm release:verify` →
+`pnpm release:tag`，最后 `node scripts/dev/release.mjs push --yes`。脚本只改 `package.json`、建 tag、分别推
+`main` 和 tag；不会执行 `npm publish`，发布仍由 tag workflow 完成。完整规则见 skill `release-npm`。
+
 **npm token（仅首次发布/无 Trusted Publishing 时）**：npm 从 2025-11 起只支持 granular access token；
 classic token 已移除。需要 token 时：
 
