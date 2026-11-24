@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: "Use NPM_TOKEN for the first publish (no trusted publisher yet)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -16,7 +23,9 @@ concurrency:
 jobs:
   publish:
     name: publish @monsterlee/dsh-vibe-trading
-    if: github.repository == 'lee88688/dsh-vibe-trading'
+    if: |
+      github.repository == 'lee88688/dsh-vibe-trading' &&
+      (github.event_name == 'push' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -40,8 +49,19 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check tag matches package version
+        if: github.event_name == 'push'
         run: |
           node -e "const p=require('./package.json'); const tag=process.env.GITHUB_REF_NAME.replace(/^v/,''); if (p.version !== tag) { console.error('tag v' + tag + ' does not match package.json ' + p.version); process.exit(1); } console.log('version ' + p.version + ' matches tag v' + tag);"
+
+      - name: Check the manual-publish version is not already on npm
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@monsterlee/dsh-vibe-trading@$VERSION" version --registry https://registry.npmjs.org/ >/dev/null 2>&1; then
+            echo "::error::@monsterlee/dsh-vibe-trading@$VERSION is already published"
+            exit 1
+          fi
+          echo "publishing @monsterlee/dsh-vibe-trading@$VERSION"
 
       - name: Verify
         run: pnpm verify:ci
@@ -49,8 +69,15 @@ jobs:
       - name: Inspect package contents
         run: npm pack --dry-run
 
-      - name: Publish
+      - name: Publish with bootstrap token
+        if: github.event_name == 'workflow_dispatch' && inputs.bootstrap
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish with trusted publishing
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.bootstrap)
         run: npm publish --access public
         # Authentication: npm trusted publishing (OIDC), configured in the
         # package's npm Settings -> Trusted publishing for this workflow.
-        # No NPM_TOKEN is used here. See docs/development.md §6.
+        # No NPM_TOKEN is used on this path. See docs/development.md §6.

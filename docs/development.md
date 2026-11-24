@@ -147,10 +147,13 @@ composer 状态芯片（窄屏 ≤560px 只留图标）、门禁 `turnTail` 面�
 2. 确认工作区干净：`git status`；`dist/`、`scripts/env/*.json`、`worker-check.json`、`.venv/` 都不进提交。
 3. 提交版本与 CHANGELOG，打 annotated tag：`git tag -a v0.4.0 -m "dsh-vibe-trading 0.4.0"`。
 4. 推送 `main` 与 tag；在 GitHub 上创建 Release，正文直接引用 `CHANGELOG.md` 对应条目。
-5. **首次发布 npm**：`npm login` 后 `npm publish`（npm 会要求 2FA OTP），发布到 scope `monsterlee` 的
-   `@monsterlee/dsh-vibe-trading`。`publishConfig.access=public`、`publishConfig.registry` 已固定 npmjs；
-   `prepare` 会在打包前构建 `dist/`。发布前先 `npm pack --dry-run` 检查内容。不带 scope 的
-   `dsh-vibe-trading` 是另一个项目，不要接管。
+5. **首次发布 npm（二选一）**：
+   - 本地：`npm login` 后 `npm publish`（npm 会要求 2FA OTP）。
+   - 不用本地登录：创建 granular token（见下）→ GitHub secret `NPM_TOKEN` → Actions → **Publish npm**
+     → **Run workflow** → 勾选 `bootstrap=true`。工作流会用 `NODE_AUTH_TOKEN` 发布当前 `main` 的版本。
+   两种方式都发布到 scope `monsterlee` 的 `@monsterlee/dsh-vibe-trading`；`publishConfig.access=public`、
+   `publishConfig.registry` 已固定 npmjs，`prepare` 会在打包前构建 `dist/`。发布前先 `npm pack --dry-run`
+   检查内容。不带 scope 的 `dsh-vibe-trading` 是另一个项目，不要接管。
 6. 首次发布后，在 npm 包 **Settings → Trusted publishing** 添加 GitHub Actions：
    - Organization or user：`lee88688`
    - Repository：`dsh-vibe-trading`
@@ -173,10 +176,12 @@ classic token 已移除。需要 token 时：
    （GitHub-hosted runner 的出口 IP 不固定）；Organizations 选 **No access**。
 5. Generate 后立即复制；GitHub 仓库 **Settings → Secrets and variables → Actions** 新建
    `NPM_TOKEN`，只在 tag 发布 job 里用 `NODE_AUTH_TOKEN` 注入；不要在 `pull_request` 工作流里引用。
-6. 配置好 Trusted Publishing 后**撤销该 token**。npm 计划从 **2027-01** 起移除 bypass-2FA token 的直接发布能力，
-   长期方案应是 Trusted Publishing。
+6. 完全不本地登录的首发：**Actions → Publish npm → Run workflow → bootstrap=true**。该路径用
+   `NODE_AUTH_TOKEN` 发布；`workflow_dispatch` 只允许在 `main` 上运行。成功后配置 Trusted Publishing。
+7. 配置好 Trusted Publishing 后**撤销该 token、删除 `NPM_TOKEN` secret**。npm 计划从 **2027-01** 起移除
+   bypass-2FA token 的直接发布能力，长期方案应是 Trusted Publishing。
 
 **CI**：`.github/workflows/ci.yml` 在 Linux/Windows 上跑 typecheck、build、178 个测试、manifest、docs/private/
 tools/pin；不跑需要 `uv sync` 或外网的 Python 检查。CI 的 `check_pin` 对缺失的 `_vendor`/运行时 venv 只报 WARN。
-[`.github/workflows/publish.yml`](../.github/workflows/publish.yml) 只在 `v*` tag 上发布，先校验 tag 与
-`package.json` 版本一致，再跑 `pnpm verify:ci` 和 `npm publish`。
+[`.github/workflows/publish.yml`](../.github/workflows/publish.yml) 在 `v*` tag 上用 OIDC 发布；也支持
+`workflow_dispatch` + `bootstrap=true`，用 `NPM_TOKEN` 完成首次发布。
