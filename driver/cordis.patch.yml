@@ -1,0 +1,10 @@
+# dsh-vt-test-driver — test-only session driver.
+#
+# Inserts ONE host plugin row. The plugin creates a real root agent/session in
+# the running desktop profile, runs `/vibe-trading on` against it, and sends a
+# prompt so both the user (in the GUI) and the auditing tooling can observe the
+# same session. It is disabled by default; enable it only while testing.
+- insert:
+    - id: dsh-vt-test-driver
+      name: 'dsh-vt-test-driver'
+      config: {}

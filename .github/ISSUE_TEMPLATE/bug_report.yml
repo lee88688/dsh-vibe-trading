@@ -1,0 +1,107 @@
+name: Bug report
+description: Something in the plugin, worker, number gate, or install flow is broken.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please remove API keys, account IDs, and personal paths from logs before posting.
+        Security issues should go through the private advisory link on the issue chooser, not this form.
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: From `/vibe-trading status`, or the `version` field in package.json.
+      placeholder: "0.4.0"
+    validations:
+      required: true
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH version
+      description: From `dsh --version`, the DSH desktop About page, or the host logs.
+      placeholder: "0.2.2-rc.5"
+    validations:
+      required: true
+  - type: input
+    id: vibe-version
+    attributes:
+      label: vibe-trading-ai version
+      description: From `/vibe-trading status`; write "not initialized" if `init` has not run.
+      placeholder: "0.1.19"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python used by the worker
+      description: The interpreter shown by `/vibe-trading status` (for example, 3.12.x).
+      placeholder: "3.12"
+    validations:
+      required: false
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install the plugin?
+      options:
+        - Local checkout (plugin_manager install_bundle)
+        - Plugins > Add plugin (local directory)
+        - Other / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Start from a fresh session when possible, including the exact slash commands.
+      placeholder: |
+        1. New session
+        2. `/vibe-trading on`
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the error text. If tools are missing, say which ones and whether the worker started.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: |
+        Plugin log: `<VIBE_TRADING_HOME>/dsh/logs/plugin.log` (usually `~/.vibe-trading/dsh/logs/plugin.log`).
+        Redact API keys, tokens, account IDs, and personal file paths.
+      render: text
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for the same problem.
+          required: true
+        - label: I removed secrets and personal data from the pasted logs.
+          required: true

@@ -1,0 +1,56 @@
+name: Publish npm
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC)
+
+concurrency:
+  group: npm-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: publish @monsterlee/dsh-vibe-trading
+    if: github.repository == 'lee88688/dsh-vibe-trading'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.13.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.9.0
+          registry-url: https://registry.npmjs.org/
+          # Deliberately no dependency cache in a release build.
+
+      - name: Install (prepare builds dist/)
+        run: pnpm install --frozen-lockfile
+
+      - name: Check tag matches package version
+        run: |
+          node -e "const p=require('./package.json'); const tag=process.env.GITHUB_REF_NAME.replace(/^v/,''); if (p.version !== tag) { console.error('tag v' + tag + ' does not match package.json ' + p.version); process.exit(1); } console.log('version ' + p.version + ' matches tag v' + tag);"
+
+      - name: Verify
+        run: pnpm verify:ci
+
+      - name: Inspect package contents
+        run: npm pack --dry-run
+
+      - name: Publish
+        run: npm publish --access public
+        # Authentication: npm trusted publishing (OIDC), configured in the
+        # package's npm Settings -> Trusted publishing for this workflow.
+        # No NPM_TOKEN is used here. See docs/development.md §6.

@@ -1,0 +1,51 @@
+# Vendored reference checkout (read-only reference, not part of this project)
+_vendor/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Node / plugin tooling
+node_modules/
+dist/
+
+# Local state, logs, scratch
+*.log
+npm-debug.log*
+.tmp/
+tmp/
+.scratch/
+.cache/
+coverage/
+results/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Local-only private-content denylist (personal patterns; never published)
+scripts/validate/private-denylist.local.json
+
+# Local package artifacts
+*.tgz
+*.tsbuildinfo
+.pnpm-store/
+
+# Personal research notes (not part of the project, never published)
+_personal/
+
+# Project-level DSH skills kept locally (personal; DSH scans .dsh/skills at rank 100)
+.dsh/
+
+# Generated benchmark artifacts (re-run scripts/env/*.py to regenerate)
+scripts/env/*.json
+!scripts/env/bundles.json
+scripts/validate/worker-check.json
+scripts/validate/fixtures/grounding-work/

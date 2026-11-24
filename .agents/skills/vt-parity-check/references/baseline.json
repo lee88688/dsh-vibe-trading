@@ -1,0 +1,13 @@
+{
+  "note": "vt-parity-check baseline (2026-11-13). Update versions/counts only; scan.py compares these keys and reports BASE01 on drift.",
+  "pluginVersion": "0.2.7",
+  "vtVersion": "0.1.19",
+  "vendorTag": "v0.1.19",
+  "registryCount": 118,
+  "mcpCount": 81,
+  "workerCount": 127,
+  "skillCount": 89,
+  "advertisedCount": 88,
+  "hiddenCount": 40,
+  "verificationEnabled": true
+}

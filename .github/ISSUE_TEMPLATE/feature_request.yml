@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest a capability, tool-set change, or documentation improvement.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check `docs/tool-surface.md` first: some Vibe-Trading tools are deliberately hidden,
+        replaced by DSH tools, or gated behind credentials, and the table records why.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do, and where does the current behavior get in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the behavior you want. If it changes the prompt, tool surface, or gate, say which.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Activation / commands
+        - Worker / tools / skills
+        - Number gate / figures
+        - Install / Python environment
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and the tool-surface table.
+          required: true
+        - label: This request does not require exposing trade execution tools.
+          required: false

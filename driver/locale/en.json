@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "VT Test Driver",
+    "description": "Test-only driver that creates real DSH sessions, activates the Vibe Trading plugin, and sends prompts so the session can be watched in the GUI and audited."
+  }
+}

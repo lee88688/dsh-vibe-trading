@@ -1,0 +1,98 @@
+{
+  "name": "@monsterlee/dsh-vibe-trading",
+  "version": "0.4.0",
+  "license": "MIT",
+  "description": "Run Vibe-Trading's finance research tools, skills, and number-verification discipline inside DeepSeek Harness (DSH runs the agent loop).",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "vibe-trading",
+    "finance",
+    "quant",
+    "backtesting",
+    "research"
+  ],
+  "author": "lee88688",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lee88688/dsh-vibe-trading.git"
+  },
+  "homepage": "https://github.com/lee88688/dsh-vibe-trading#readme",
+  "bugs": {
+    "url": "https://github.com/lee88688/dsh-vibe-trading/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.9.0",
+    "dsh": ">=0.2.2-rc.5"
+  },
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "dist/",
+    "cordis.patch.yml",
+    "worker/**/*.py",
+    "toolsets.json",
+    "prompt/",
+    "locale/*.json",
+    "icon.svg",
+    "client.js",
+    "plugin-page.zh.md",
+    "plugin-page.en.md",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node tests/run-all.mjs",
+    "check": "node scripts/validate/check_manifest.mjs",
+    "check:docs": "node scripts/validate/check_docs_links.mjs",
+    "check:private": "node scripts/validate/check_private.mjs",
+    "docs:tools": "node scripts/validate/gen_tool_surface_doc.mjs",
+    "check:tools": "node scripts/validate/gen_tool_surface_doc.mjs --check",
+    "check:worker": "node scripts/validate/py.mjs scripts/validate/check_worker.py",
+    "check:grounding": "node scripts/validate/py.mjs scripts/validate/check_grounding.py",
+    "verify": "npm run typecheck && npm run build && node tests/run-all.mjs && node scripts/validate/check_manifest.mjs",
+    "verify:all": "npm run verify && npm run check:docs && npm run check:private && npm run check:tools && node scripts/validate/check_pin.mjs && npm run check:worker && npm run check:grounding && npm run check:surface",
+    "verify:ci": "npm run typecheck && npm run build && node tests/run-all.mjs && node scripts/validate/check_manifest.mjs && npm run check:docs && npm run check:private && npm run check:tools && node scripts/validate/check_pin.mjs",
+    "check:pin": "node scripts/validate/check_pin.mjs",
+    "capture:surface": "node scripts/validate/py.mjs scripts/validate/capture_worker_surface.py",
+    "capture:mcp": "node scripts/validate/capture_mcp_surface.mjs",
+    "check:surface": "node scripts/validate/py.mjs scripts/validate/capture_worker_surface.py",
+    "py:sync": "uv sync --frozen",
+    "py:check": "uv run python scripts/validate/check_grounding.py",
+    "py:check:worker": "uv run python scripts/validate/check_worker.py"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-chat",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  }
+}

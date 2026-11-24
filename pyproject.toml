@@ -1,0 +1,18 @@
+[project]
+name = "dsh-vibe-trading-dev"
+version = "0.0.0"
+description = "Development environment for the dsh-vibe-trading DSH plugin (worker scripts, validation, benchmarks)."
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+# The plugin does not ship a Python package: the runtime environment is the venv
+# created by `/vibe-trading init` (~/.vibe-trading/dsh/venv). This project only
+# provides a reproducible contributor environment for scripts/ and worker/.
+[dependency-groups]
+dev = [
+  "vibe-trading-ai==0.1.19",
+  "zstandard>=0.25",
+]
+
+[tool.uv]
+package = false

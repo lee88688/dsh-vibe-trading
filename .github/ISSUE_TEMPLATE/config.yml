@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/lee88688/dsh-vibe-trading/tree/main/docs
+    about: Architecture, number verification, data sources, development, and the tool surface.
+  - name: Report a security vulnerability
+    url: https://github.com/lee88688/dsh-vibe-trading/security/advisories/new
+    about: Please use a private advisory instead of a public issue.

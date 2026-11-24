@@ -1,0 +1,15 @@
+# dsh-vibe-trading — bundle patch.
+#
+# Inserts ONE host plugin row. The plugin itself contains no profile-level
+# overrides: touching host capability rows (e.g. `sandbox-policy`) during bundle
+# activation reloads a service used by in-flight tool calls and deadlocked the
+# Electron host, so the plugin deliberately avoids them.
+#
+# Run-directory I/O is therefore routed through Vibe-Trading's own tools
+# (`read_file` / `write_file`, exposed in the `runio` group), which run inside the
+# Python worker and are not subject to the DSH file sandbox.
+
+- insert:
+    - id: dsh-vibe-trading
+      name: '@monsterlee/dsh-vibe-trading'
+      config: {}

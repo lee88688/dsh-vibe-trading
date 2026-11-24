@@ -1,0 +1,271 @@
+{
+  "version": 4,
+  "note": "Static core tools are registered at activation; other tools are loaded via vt_load_tools and called through vt_call. 'virtualTools' are MCP-surface tools whose implementation lives in mcp_server.py wrappers, not in the Python registry: the worker re-implements them by calling the same underlying modules. 'credentialGated' tools are only advertised while the worker reports the credential (env key + opt-in) present. 'dropped' tools are deliberately not exposed. Names align with VT's agent-internal registry (what its skills call), not the MCP wrapper names: see docs/tool-surface.md.",
+  "staticCore": [
+    "search_symbol",
+    "get_market_data",
+    "read_document",
+    "backtest",
+    "financial_rigor"
+  ],
+  "virtualTools": [
+    "get_macro_series",
+    "get_cn_macro_series",
+    "get_fund_nav",
+    "get_cn_announcements",
+    "search_broker_reports",
+    "iwencai_search"
+  ],
+  "replacedByDsh": {
+    "web_search": {
+      "tool": "web_search",
+      "note": "DSH 原生联网搜索，同名直接用"
+    },
+    "read_url": {
+      "tool": "web_fetch",
+      "note": "抓取网页为 Markdown/文本"
+    },
+    "analyze_image": {
+      "tool": "read_image",
+      "note": "VT 版本要 VT 自己的 provider 栈，本部署不启用"
+    },
+    "save_skill": {
+      "tool": "write",
+      "note": "把 SKILL.md 写进 DSH 技能根 .dsh/skills/<name>/，新会话出现在技能目录"
+    },
+    "patch_skill": {
+      "tool": "edit",
+      "note": "修改技能正文或 references/ 下的附带文件"
+    },
+    "delete_skill": {
+      "tool": "pwsh",
+      "note": "DSH 没有专用删除工具，删技能目录用 shell"
+    },
+    "skill_file": {
+      "tool": "read",
+      "note": "读技能附带文件；写入用 write / edit"
+    },
+    "check_background": {
+      "tool": "job_list",
+      "note": "后台任务列表与输出走 job_list / job_output"
+    },
+    "scheduled_research": {
+      "tool": "schedule_create",
+      "note": "定时研究用 DSH 的 scheduled task（schedule_create / schedule_edit）"
+    }
+  },
+  "replacedByGateway": [
+    "list_skills",
+    "load_skill"
+  ],
+  "credentialGated": {
+    "get_macro_series": "FRED_API_KEY",
+    "iwencai_search": "VIBE_TRADING_IWENCAI_KEY",
+    "get_fund_nav": "GILDATA_TOKEN + fund_nav opt-in",
+    "get_cn_macro_series": "GILDATA_TOKEN + macro_series opt-in",
+    "get_cn_announcements": "GILDATA_TOKEN + announcements opt-in",
+    "search_broker_reports": "GILDATA_TOKEN + broker_reports opt-in"
+  },
+  "excluded": [
+    "qveris_search",
+    "qveris_inspect",
+    "qveris_execute"
+  ],
+  "hidden": {
+    "execution": {
+      "why": "交易执行一律不暴露（D1）：本部署是研究/只读形态，券商访问只做 trading-reads 的只读视图，不下单、不撤单、不改仓。",
+      "tools": [
+        "trading_place_order",
+        "trading_cancel_order",
+        "etoro_cancel_close_order",
+        "etoro_close_position",
+        "etoro_copy_close",
+        "etoro_copy_poll",
+        "etoro_copy_precheck",
+        "etoro_copy_start",
+        "etoro_edit_position_stops",
+        "etoro_search_instruments"
+      ]
+    },
+    "broker-reads-extended": {
+      "why": "券商扩展只读工具：用户配置券商连接前保持隐藏；常用的账户/持仓/委托/成交/报价视图已由 trading-reads 覆盖。",
+      "tools": [
+        "trading_acc_cash_flow",
+        "trading_capital_distribution",
+        "trading_capital_flow",
+        "trading_earnings_calendar",
+        "trading_financials",
+        "trading_history_deals",
+        "trading_rehab"
+      ]
+    },
+    "memory": {
+      "why": "本部署没有跨会话记忆与会话搜索（DSH 无等价能力，提示词要求明确告知用户）；compact 也不需要——宿主自动管理上下文，没有手动压缩工具。",
+      "tools": [
+        "compact",
+        "remember",
+        "session_search"
+      ]
+    },
+    "research-needs-vt-ui": {
+      "why": "portfolio_summary 读的是 VT Web UI 刷新后落盘的组合快照；本插件不跑 VT 前端，永远没有快照可读。",
+      "tools": [
+        "portfolio_summary"
+      ]
+    },
+    "research-needs-local-store": {
+      "why": "get_br_market_data 读本地同步的巴西数据仓（B3/CVM/BCB/Tesouro Direto）；没有这个库时除 status 外都是空结果。",
+      "tools": [
+        "get_br_market_data"
+      ]
+    },
+    "research-dropped-feature": {
+      "why": "绑定本部署不运行的功能：pixel-office 任务板（UI/swarm 协调面，还会写本地任务库）与实盘 mandate 提议流程（这里没有下单路径，没有消费者）。",
+      "tools": [
+        "pixel_office",
+        "propose_mandate_profiles"
+      ]
+    },
+    "research-overlap": {
+      "why": "alpha_compare 只做多个 alpha 的横向排名；已暴露的 alpha_bench 支持单 alpha 或整 zoo 并给 IC/IR，只差多 alpha 排名的便利。",
+      "tools": [
+        "alpha_compare"
+      ]
+    }
+  },
+  "dropped": {
+    "swarm": {
+      "why": "VT 的嵌套多 agent 运行由 DSH subagent 取代；它们还需要自己的 LLM key 和 per-session 绑定。",
+      "tools": [
+        "run_swarm",
+        "list_swarm_presets",
+        "get_swarm_status",
+        "get_run_result",
+        "list_runs",
+        "retry_run",
+        "reap_stale_runs"
+      ]
+    },
+    "mcp-facade": {
+      "why": "MCP 包装名，对应的 registry 名已直接暴露（pattern / options_pricing / options_payoff）；保留包装名只为与上游 MCP 面对齐，worker 仍会列出它们。",
+      "tools": [
+        "pattern_recognition",
+        "analyze_options",
+        "analyze_options_payoff"
+      ]
+    }
+  },
+  "groups": {
+    "research": [
+      "get_financial_statements",
+      "get_sec_filings",
+      "get_stock_news",
+      "get_research_reports",
+      "get_stock_profile",
+      "get_sector_info",
+      "get_margin_trading",
+      "get_block_trades",
+      "get_dragon_tiger",
+      "get_fund_flow",
+      "get_northbound_flow",
+      "get_southbound_flow",
+      "get_shareholder_count",
+      "get_lockup_expiry",
+      "get_institutional_holdings",
+      "etf_holdings",
+      "get_macro_series",
+      "get_cn_macro_series",
+      "get_cn_announcements",
+      "search_broker_reports",
+      "screen_market",
+      "iwencai_search",
+      "prediction_market",
+      "research_papers",
+      "get_fundamentals",
+      "get_fund_nav"
+    ],
+    "backtest": [
+      "factor_analysis",
+      "alpha_zoo",
+      "alpha_bench",
+      "list_strategies",
+      "query_strategies",
+      "get_strategy_evidence",
+      "refresh_strategy_evidence",
+      "adapt_strategy",
+      "read_run_artifact"
+    ],
+    "quant": [
+      "get_options_chain",
+      "options_pricing",
+      "options_payoff",
+      "quantlib_call",
+      "cashflow_performance",
+      "technical_indicators",
+      "sentiment",
+      "orderbook_depth",
+      "pattern",
+      "paper_trade_step",
+      "portfolio_risk_xray"
+    ],
+    "verify": [
+      "report_audit"
+    ],
+    "team": [
+      "analyze_trade_journal",
+      "extract_shadow_strategy",
+      "run_shadow_backtest",
+      "render_shadow_report",
+      "scan_shadow_signals"
+    ],
+    "trading-reads": [
+      "trading_connections",
+      "trading_select_connection",
+      "trading_check",
+      "trading_account",
+      "trading_positions",
+      "trading_orders",
+      "trading_quote",
+      "trading_history"
+    ],
+    "goals": [
+      "start_research_goal",
+      "get_research_goal",
+      "add_goal_evidence",
+      "update_research_goal",
+      "update_research_goal_status"
+    ],
+    "runio": [
+      "read_file",
+      "write_file",
+      "edit_file"
+    ],
+    "research-workflow": [
+      "create_hypothesis",
+      "update_hypothesis",
+      "search_hypotheses",
+      "save_research_artifact",
+      "search_research_artifacts",
+      "get_research_artifact",
+      "list_backtest_runs",
+      "generate_backtest_config",
+      "scaffold_signal_engine",
+      "link_backtest",
+      "link_autopilot_backtest",
+      "run_research_autopilot",
+      "sdm_register",
+      "sdm_status",
+      "sdm_decay_scan"
+    ]
+  },
+  "registryOnly": [
+    "financial_rigor",
+    "report_audit"
+  ],
+  "localTools": [
+    {
+      "name": "report_figures",
+      "description": "Declare the figures your answer cites (value | role | note | ref) plus the exact draft answer; validates them against this session's evidence before release."
+    }
+  ]
+}

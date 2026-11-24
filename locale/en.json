@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Vibe Trading",
+    "description": "Run Vibe-Trading's finance research tools and skills inside DSH sessions (activate with /vibe-trading on). Research only; no trade execution.",
+    "detail": "plugin-page.en.md"
+  }
+}

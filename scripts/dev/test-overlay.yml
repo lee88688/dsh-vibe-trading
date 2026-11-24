@@ -1,0 +1,6 @@
+# Test overlay: load the plugin directly from this checkout, without installing it
+# into any profile. Usage: dsh --profile headless --patch <this file> ...
+- insert:
+    - id: dsh-vibe-trading
+      name: ../../dist/index.js
+      config: {}
