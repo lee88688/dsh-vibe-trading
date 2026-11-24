@@ -15,7 +15,7 @@ registry, 89 specialist skills, and finance-specific output rules.
 Published as [`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monsterlee/dsh-vibe-trading)
 on npm; the source lives in this repository.
 
-> **Status:** `0.4.0`, verified against DSH `0.2.2-rc.5` and `vibe-trading-ai` `0.1.19` on a Windows
+> **Status:** `0.4.1`, verified against DSH `0.2.2-rc.5` and `vibe-trading-ai` `0.1.19` on a Windows
 > 11 web profile. The GitHub Actions workflow builds and tests on Linux and Windows.
 > This is an independent community integration, **not** an official HKUDS project.
 >
@@ -59,7 +59,7 @@ The plugin is published as **`@monsterlee/dsh-vibe-trading`**. Install a pinned 
 plugin manager:
 
 ```text
-plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.0"
+plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.1"
 ```
 
 `@latest` also works while the project is pre-1.0, but pinning keeps the host/tool surface reproducible.

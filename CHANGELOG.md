@@ -8,6 +8,16 @@ All notable changes to this project are documented here. The format is based on
 > git history starts here. Version references in `AGENTS.md` and `docs/decisions.md` (for example
 > “0.2.7 起”) record when a behavior was introduced, not public tags.
 
+## [0.4.1] - 2026-11-24
+
+Release automation only; no runtime or tool-surface changes.
+
+### Changed
+
+- Added tag-triggered npm publishing through GitHub Actions OIDC trusted publishing.
+- Added a manual `workflow_dispatch` bootstrap path (`bootstrap=true`) for the first publish.
+- Documented npm trusted publishing, granular-token selection, and the one-time bootstrap flow.
+
 ## [0.4.0] - 2026-11-20
 
 First public release, published as `@monsterlee/dsh-vibe-trading` on npm and available from source on
@@ -34,4 +44,5 @@ GitHub.
 
 - Checks no longer depend on git-ignored benchmark artifacts for the worker and MCP surfaces.
 
+[0.4.1]: https://github.com/lee88688/dsh-vibe-trading/releases/tag/v0.4.1
 [0.4.0]: https://github.com/lee88688/dsh-vibe-trading/releases/tag/v0.4.0

@@ -145,7 +145,7 @@ composer 状态芯片（窄屏 ≤560px 只留图标）、门禁 `turnTail` 面�
 
 1. `pnpm verify:all` 全绿；至少复跑第 3 节真机验收与第 5 节场景矩阵（Python 检查需要 `uv sync` + 外网）。
 2. 确认工作区干净：`git status`；`dist/`、`scripts/env/*.json`、`worker-check.json`、`.venv/` 都不进提交。
-3. 提交版本与 CHANGELOG，打 annotated tag：`git tag -a v0.4.0 -m "dsh-vibe-trading 0.4.0"`。
+3. 提交版本与 CHANGELOG，打 annotated tag：`git tag -a v0.4.1 -m "dsh-vibe-trading 0.4.1"`。
 4. 推送 `main` 与 tag；在 GitHub 上创建 Release，正文直接引用 `CHANGELOG.md` 对应条目。
 5. **首次发布 npm（二选一）**：
    - 本地：`npm login` 后 `npm publish`（npm 会要求 2FA OTP）。
@@ -162,7 +162,7 @@ composer 状态芯片（窄屏 ≤560px 只留图标）、门禁 `turnTail` 面�
    - Allowed actions：勾选 **Allow npm publish**（如果要用 staged-only，则改走 `npm stage publish`）
    之后推 `v*` tag 会触发 [`.github/workflows/publish.yml`](../.github/workflows/publish.yml)，用 OIDC
    发布，不需要 `NPM_TOKEN`。npm 要求首次 Trusted Publisher 配置后 **2 天内完成一次成功发布**，否则配置过期。
-7. 安装方式：`plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.0"`；源码安装仍可用
+7. 安装方式：`plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.1"`；源码安装仍可用
    `clone + pnpm install + target=<绝对路径>`。发布后按 README 的安装步骤跑一遍冷启动验证。
 
 **npm token（仅首次发布/无 Trusted Publishing 时）**：npm 从 2025-11 起只支持 granular access token；

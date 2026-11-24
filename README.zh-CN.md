@@ -13,7 +13,7 @@
 
 npm 包：[`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monsterlee/dsh-vibe-trading)；源码在本仓库。
 
-> **状态**：`0.4.0`，在 DSH `0.2.2-rc.5` + `vibe-trading-ai` `0.1.19` 的 Windows 11 web profile
+> **状态**：`0.4.1`，在 DSH `0.2.2-rc.5` + `vibe-trading-ai` `0.1.19` 的 Windows 11 web profile
 > 实测通过；GitHub Actions 在 Linux 与 Windows 上构建并运行测试。
 > 本项目是独立社区集成，**不是** HKUDS 官方项目。
 >
@@ -52,7 +52,7 @@ npm 包：[`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monste
 插件发布在 npm 的 **`@monsterlee/dsh-vibe-trading`**。在 DSH 会话里让 agent 调用：
 
 ```text
-plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.0"
+plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.1"
 ```
 
 也可以用 `@latest`，但 1.0 之前建议固定版本，保证宿主/工具面对得上。然后**新建会话**：
