@@ -11,7 +11,6 @@ const targets = [
   "AGENTS.md",
   "CONTRIBUTING.md",
   "SECURITY.md",
-  "CHANGELOG.md",
   "THIRD-PARTY-NOTICES.md",
   "plugin-page.zh.md",
   "plugin-page.en.md",

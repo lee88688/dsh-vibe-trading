@@ -13,7 +13,7 @@ body:
     attributes:
       label: Plugin version
       description: From `/vibe-trading status`, or the `version` field in package.json.
-      placeholder: "0.4.1"
+      placeholder: "0.4.x"
     validations:
       required: true
   - type: input

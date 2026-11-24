@@ -1,7 +1,7 @@
 # AGENTS.md — dsh-vibe-trading 跨会话交接
 
 > 给后续 session / 其他 agent 的最小必要上下文。先读本文件，再看 [docs/README.md](docs/README.md)（文档索引）；细节都在 `docs/`。
-> 最后更新：2026-11-24（开源发布骨架：英文 README + README.zh-CN、CI、CONTRIBUTING/SECURITY/CHANGELOG/THIRD-PARTY-NOTICES、GitHub 模板；包名改为 npm scope `@monsterlee/dsh-vibe-trading`，发布 npm + GitHub 源码；新 clone 的 Node 校验不再依赖 git-ignored 采集物）。
+> 最后更新：2026-11-24（开源发布骨架：英文 README + README.zh-CN、CI、CONTRIBUTING/SECURITY/THIRD-PARTY-NOTICES、GitHub 模板；包名改为 npm scope `@monsterlee/dsh-vibe-trading`，发布 npm + GitHub 源码；新 clone 的 Node 校验不再依赖 git-ignored 采集物；版本号只在 `package.json` 维护，发布说明由 GitHub Release 自动生成）。
 > **公开 git 历史从 0.4.0 开始**（0.2.x–0.3.x 是公开前内部迭代；文中“0.2.7 起/0.3.x 起”是行为溯源，不是公开 tag）。
 
 ## 1. 项目是什么
@@ -10,10 +10,10 @@
 继续提供工具、技能和金融领域纪律，替代 Vibe-Trading 自带的 agent。
 
 - 仓库：<https://github.com/lee88688/dsh-vibe-trading>（本文件所在目录；下文相对路径都相对于仓库根，换机器 clone 后无需改动）
-- 包名 **`@monsterlee/dsh-vibe-trading`**（npm scope `monsterlee`），version **0.4.1**；profile 行 id 仍为
-  `dsh-vibe-trading`（`cordis.patch.yml` 的 `id`），`name` 指向 scoped 包；npm 上不带 scope 的 `dsh-vibe-trading`
-  是另一个项目，不要混用。profile 里 link 安装，reload 后加载当前 dist；`main`/`exports` → `dist/index.js`；
-  `pnpm install` 的 `prepare` 会构建 `dist/`；bundle patch 只有一条 `- insert:`（不 override 宿主行）
+- 包名 **`@monsterlee/dsh-vibe-trading`**（npm scope `monsterlee`），version 以 `package.json` 为准（当前 `0.4.x`）；
+  profile 行 id 仍为 `dsh-vibe-trading`（`cordis.patch.yml` 的 `id`），`name` 指向 scoped 包；npm 上不带 scope 的
+  `dsh-vibe-trading` 是另一个项目，不要混用。profile 里 link 安装，reload 后加载当前 dist；`main`/`exports` →
+  `dist/index.js`；`pnpm install` 的 `prepare` 会构建 `dist/`；bundle patch 只有一条 `- insert:`（不 override 宿主行）
 - 当前状态：已构建、已安装进 **web profile**（本机实测）、**已启用**（`plugin_manager` 行 `dsh-vibe-trading`）
 - 运行时 venv：由 `/vibe-trading init` 创建在 `~/.vibe-trading/dsh/venv`（本机实测装的是 vibe-trading-ai 0.1.19；
   Windows 入口 `Scripts/python.exe`，POSIX 为 `bin/python`）
@@ -38,7 +38,7 @@
 
 | 项 | 值 |
 |---|---|
-| 插件版本 | **0.4.1**（profile 里 link 安装，reload 后加载当前 dist）；`main`/`exports` → `dist/index.js`；bundle patch 只有一条 `- insert:`（不 override 宿主行） |
+| 插件版本 | `package.json` 的 `version`（当前 `0.4.x`；profile 里 link 安装，reload 后加载当前 dist）；`main`/`exports` → `dist/index.js`；bundle patch 只有一条 `- insert:`（不 override 宿主行） |
 | 发布形态 | npm **`@monsterlee/dsh-vibe-trading`**（public，`publishConfig.access=public`）+ GitHub 源码；安装 target 用 scoped 包名或本地绝对路径；CI 见 `.github/workflows/ci.yml` |
 | 适配运行时 | vibe-trading-ai **0.1.19**（`PINNED_VERSION`，单一事实源 `src/lib/config.ts`） |
 | 适配宿主 | DSH **0.2.2-rc.5**（实测/优化基线）；`engines.dsh = ">=0.2.2-rc.5"`（0.3.4 起，`check_manifest.mjs` 校验形态） |
@@ -238,4 +238,4 @@ node scripts/dev/command-smoke.mjs        # 命令冒烟（不写 profile）
 3. 跑一遍第 5 节本地校验 + `node scripts/validate/check_pin.mjs`，确认基线与版本 pin 都 OK；
 4. 若要做真实会话验证：按 [docs/development.md](docs/development.md) §4；
 5. 改提示词/工具面后：`pnpm build` → reload 插件（无活跃会话时）→ 新会话 `/vibe-trading on` 验证；
-6. 收尾：更新 [docs/development.md](docs/development.md)（测试/验收）、用户可见行为同步 `README.md` / `README.zh-CN.md` 与 `CHANGELOG.md`，必要时 [docs/decisions.md](docs/decisions.md) / [docs/architecture.md](docs/architecture.md)，提交。
+6. 收尾：更新 [docs/development.md](docs/development.md)（测试/验收）、用户可见行为同步 `README.md` / `README.zh-CN.md`，必要时 [docs/decisions.md](docs/decisions.md) / [docs/architecture.md](docs/architecture.md)，提交。版本号只改 `package.json`；发布说明由 GitHub Release 自动生成，不维护 CHANGELOG。

@@ -15,7 +15,7 @@ registry, 89 specialist skills, and finance-specific output rules.
 Published as [`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monsterlee/dsh-vibe-trading)
 on npm; the source lives in this repository.
 
-> **Status:** `0.4.1`, verified against DSH `0.2.2-rc.5` and `vibe-trading-ai` `0.1.19` on a Windows
+> **Status:** pre-1.0, verified against DSH `0.2.2-rc.5` and `vibe-trading-ai` `0.1.19` on a Windows
 > 11 web profile. The GitHub Actions workflow builds and tests on Linux and Windows.
 > This is an independent community integration, **not** an official HKUDS project.
 >
@@ -59,11 +59,11 @@ The plugin is published as **`@monsterlee/dsh-vibe-trading`**. Install a pinned 
 plugin manager:
 
 ```text
-plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.1"
+plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"
 ```
 
-`@latest` also works while the project is pre-1.0, but pinning keeps the host/tool surface reproducible.
-Then open a **new session**:
+For a reproducible install, replace `@latest` with the version you want (for example `@0.4.x`); npm's
+`latest` tag tracks the current release. Then open a **new session**:
 
 ```text
 /vibe-trading init     # create ~/.vibe-trading/dsh/venv and install vibe-trading-ai==0.1.19
@@ -168,7 +168,8 @@ The Python checks (`check:worker`, `check:grounding`) need `uv sync` and network
 - Report vulnerabilities through
   [GitHub private advisories](https://github.com/lee88688/dsh-vibe-trading/security/advisories/new),
   not a public issue. See [SECURITY.md](SECURITY.md) for the trust model.
-- Changes are tracked in [CHANGELOG.md](CHANGELOG.md).
+- Release notes are generated on
+  [GitHub Releases](https://github.com/lee88688/dsh-vibe-trading/releases).
 
 ## License and attribution
 

@@ -13,7 +13,7 @@
 
 npm 包：[`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monsterlee/dsh-vibe-trading)；源码在本仓库。
 
-> **状态**：`0.4.1`，在 DSH `0.2.2-rc.5` + `vibe-trading-ai` `0.1.19` 的 Windows 11 web profile
+> **状态**：pre-1.0，在 DSH `0.2.2-rc.5` + `vibe-trading-ai` `0.1.19` 的 Windows 11 web profile
 > 实测通过；GitHub Actions 在 Linux 与 Windows 上构建并运行测试。
 > 本项目是独立社区集成，**不是** HKUDS 官方项目。
 >
@@ -52,10 +52,11 @@ npm 包：[`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monste
 插件发布在 npm 的 **`@monsterlee/dsh-vibe-trading`**。在 DSH 会话里让 agent 调用：
 
 ```text
-plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@0.4.1"
+plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"
 ```
 
-也可以用 `@latest`，但 1.0 之前建议固定版本，保证宿主/工具面对得上。然后**新建会话**：
+需要可复现时把 `@latest` 换成具体版本（例如 `@0.4.x`）；npm 的 `latest` tag 指向当前发布版。
+然后**新建会话**：
 
 ```text
 /vibe-trading init     # 创建 ~/.vibe-trading/dsh/venv，安装 vibe-trading-ai==0.1.19
@@ -155,7 +156,8 @@ pnpm verify:all   # 再加 docs/private/tools/pin/surface/worker/grounding
 - 安全问题请用
   [GitHub 私密安全公告](https://github.com/lee88688/dsh-vibe-trading/security/advisories/new)，
   不要开公开 issue。信任模型见 [SECURITY.md](SECURITY.md)。
-- 变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+- 发布说明在
+  [GitHub Releases](https://github.com/lee88688/dsh-vibe-trading/releases)。
 
 ## 许可证与来源
 

@@ -19,7 +19,7 @@
 | [postmortems/install-hang.md](postmortems/install-hang.md) | 复盘 | 安装挂起事故的根因与回归防线 |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) | 贡献 | 环境、校验、改动范围、PR 约定 |
 | [../SECURITY.md](../SECURITY.md) | 安全 | 漏洞报告、信任边界、凭据处理 |
-| [../CHANGELOG.md](../CHANGELOG.md) | 变更 | 按版本记录的用户可见变更 |
+| [GitHub Releases](https://github.com/lee88688/dsh-vibe-trading/releases) | 变更 | 每个 tag 的发布说明（由 workflow 自动生成） |
 | [../THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md) | 许可 | 上游 Vibe-Trading 的 MIT 声明与改编范围 |
 
 ## 维护约定
