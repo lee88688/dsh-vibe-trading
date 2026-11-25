@@ -25,13 +25,18 @@ jobs:
     name: publish @monsterlee/dsh-vibe-trading
     if: |
       github.repository == 'lee88688/dsh-vibe-trading' &&
-      (github.event_name == 'push' || github.ref == 'refs/heads/main')
+      (github.event_name == 'push' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
       - name: Check out
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags
+        run: git fetch --tags --force origin
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
@@ -49,7 +54,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check tag matches package version
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           node -e "const p=require('./package.json'); const tag=process.env.GITHUB_REF_NAME.replace(/^v/,''); if (p.version !== tag) { console.error('tag v' + tag + ' does not match package.json ' + p.version); process.exit(1); } console.log('version ' + p.version + ' matches tag v' + tag);"
 
@@ -82,10 +87,24 @@ jobs:
         # package's npm Settings -> Trusted publishing for this workflow.
         # No NPM_TOKEN is used on this path. See docs/development.md §6.
 
+      - name: Generate release notes
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          previous="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          node scripts/dev/release-plan.mjs notes --from "$previous" --to "$GITHUB_REF_NAME" > release-notes.md
+          echo "release notes: $(wc -l < release-notes.md) line(s)"
+
       - name: Create GitHub Release
-        if: github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists"
+            exit 0
+          fi
+          if [ -s release-notes.md ]; then
+            gh release create "$GITHUB_REF_NAME" --title "dsh-vibe-trading $GITHUB_REF_NAME" --notes-file release-notes.md
+          else
             gh release create "$GITHUB_REF_NAME" --generate-notes --title "dsh-vibe-trading $GITHUB_REF_NAME"
+          fi

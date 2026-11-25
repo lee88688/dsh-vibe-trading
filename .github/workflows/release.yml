@@ -1,0 +1,177 @@
+name: Release
+
+# Automated versioning: after CI is green on main, derive the next version from
+# conventional commits, commit + tag it, and dispatch publish.yml on the tag.
+#
+# The npm publish stays in publish.yml (OIDC trusted publishing is bound to that
+# workflow filename) and runs on the tag ref, so provenance points at the tagged
+# commit rather than at the pre-bump main commit.
+#
+# Manual entry points: workflow_dispatch with `version` (force), `dry_run`
+# (plan only), or `force` (release even if the release gate is missing).
+# Kill switch: repository variable AUTO_RELEASE (unset/false = manual only).
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Force the next version (x.y.z); default is derived from commits"
+        required: false
+        type: string
+      dry_run:
+        description: "Print the plan only (no commit, tag, or publish)"
+        required: false
+        default: false
+        type: boolean
+      force:
+        description: "Release even when the release gate footer is missing"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write # commit the version bump, push the tag
+  actions: write # dispatch publish.yml
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: plan, tag, and dispatch publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.repository == 'lee88688/dsh-vibe-trading' && (
+        github.event_name == 'workflow_dispatch' ||
+        (vars.AUTO_RELEASE == 'true' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event == 'push')
+      )
+
+    steps:
+      - name: Check out the verified commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.9.0
+
+      - name: Fetch tags
+        run: git fetch --tags --force origin
+
+      - name: Skip commits that are no longer the tip of main
+        id: guard
+        run: |
+          target="$(git rev-parse HEAD)"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            tip="$(git ls-remote origin refs/heads/main | cut -f1)"
+            if [ "$tip" != "$target" ]; then
+              echo "::notice::Skipping release for ${target:0:7}: main is already at ${tip:0:7}; the newer push will release."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Plan the next version
+        id: plan
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          FORCE_VERSION: ${{ inputs.version }}
+        run: |
+          args=(plan --github-output "$GITHUB_OUTPUT" --notes-file release-notes.md)
+          if [ -n "$FORCE_VERSION" ]; then args+=(--version "$FORCE_VERSION"); fi
+          node scripts/dev/release-plan.mjs "${args[@]}"
+
+      - name: Summarize the plan
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          {
+            echo "### Release plan"
+            echo ""
+            echo "- last release tag: v${{ steps.plan.outputs.from_version }}"
+            echo "- releasable: \`${{ steps.plan.outputs.releasable }}\`"
+            echo "- next version: \`${{ steps.plan.outputs.version || '(none)' }}\` (bump: ${{ steps.plan.outputs.bump || 'none' }})"
+            echo "- release gate: required=${{ steps.plan.outputs.gate_required }} satisfied=${{ steps.plan.outputs.gate_satisfied }}"
+            echo ""
+            cat release-notes.md 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce the release gate
+        if: |
+          steps.plan.outputs.releasable == 'true' &&
+          steps.plan.outputs.gate_required == 'true' &&
+          steps.plan.outputs.gate_satisfied != 'true' &&
+          (github.event_name != 'workflow_dispatch' || inputs.force != true)
+        run: |
+          echo "::error::Release blocked: this range changes the release risk surface without a 'Release-Gate: verified' footer."
+          echo "Load skill release-gate, run pnpm verify:all + parity + real-session/UI smoke, then add the footer and push again."
+          echo "After verifying manually you may also dispatch this workflow with force=true."
+          exit 1
+
+      - name: Stop after the plan (dry run)
+        if: |
+          steps.plan.outputs.releasable == 'true' &&
+          github.event_name == 'workflow_dispatch' && inputs.dry_run == true
+        run: echo "::notice::Dry run: would release v${{ steps.plan.outputs.version }}."
+
+      - name: Bump, commit, tag, and push
+        if: |
+          steps.plan.outputs.releasable == 'true' &&
+          (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          node scripts/dev/release.mjs set "$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- package.json; then
+            echo "package.json is already at $VERSION"
+          else
+            git add package.json
+            git commit -m "chore(release): v$VERSION"
+          fi
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "tag v$VERSION already exists locally"
+          else
+            git tag -a "v$VERSION" -m "dsh-vibe-trading $VERSION"
+          fi
+          git push origin HEAD:main
+          if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
+            echo "tag v$VERSION already exists on origin"
+          else
+            git push origin "v$VERSION"
+          fi
+
+      - name: Dispatch the npm publish on the new tag
+        if: |
+          steps.plan.outputs.releasable == 'true' &&
+          (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if gh workflow run publish.yml --ref "v$VERSION"; then
+              echo "::notice::Dispatched publish.yml on v$VERSION."
+              exit 0
+            fi
+            echo "dispatch attempt $attempt failed; retrying in 5s"
+            sleep 5
+          done
+          echo "::error::Could not dispatch publish.yml on v$VERSION; run it manually from the Actions tab."
+          exit 1
+
+      - name: Nothing to release
+        if: |
+          steps.guard.outputs.skip != 'true' &&
+          steps.plan.outputs.releasable != 'true'
+        run: echo "::notice::No releasable commits since v${{ steps.plan.outputs.from_version }}; nothing to do."
