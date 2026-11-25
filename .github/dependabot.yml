@@ -1,11 +1,32 @@
 version: 2
 updates:
+  # Runtime dependencies are tiny (@types/node, typescript): collect minor and
+  # patch updates into one PR per month, and let majors arrive on their own so
+  # their release notes are reviewed in isolation.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+
+  # One grouped PR instead of one per action (the first run opened three).
+  # Major bumps (e.g. checkout v8) stay separate: their breaking changes are
+  # reviewed on their own, and cooldown keeps them out of the first days.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      github-actions-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
