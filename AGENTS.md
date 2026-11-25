@@ -10,7 +10,7 @@
 继续提供工具、技能和金融领域纪律，替代 Vibe-Trading 自带的 agent。
 
 - 仓库：<https://github.com/lee88688/dsh-vibe-trading>（本文件所在目录；下文相对路径都相对于仓库根，换机器 clone 后无需改动）
-- 包名 **`@monsterlee/dsh-vibe-trading`**（npm scope `monsterlee`），version 以 `package.json` 为准（当前 `0.4.x`）；
+- 包名 **`@monsterlee/dsh-vibe-trading`**（npm scope `monsterlee`），version 以 `package.json` 为准（由发版流水线写回）；
   profile 行 id 仍为 `dsh-vibe-trading`（`cordis.patch.yml` 的 `id`），`name` 指向 scoped 包；npm 上不带 scope 的
   `dsh-vibe-trading` 是另一个项目，不要混用。profile 里 link 安装，reload 后加载当前 dist；`main`/`exports` →
   `dist/index.js`；`pnpm install` 的 `prepare` 会构建 `dist/`；bundle patch 只有一条 `- insert:`（不 override 宿主行）
@@ -38,7 +38,7 @@
 
 | 项 | 值 |
 |---|---|
-| 插件版本 | `package.json` 的 `version`（当前 `0.4.x`；profile 里 link 安装，reload 后加载当前 dist）；`main`/`exports` → `dist/index.js`；bundle patch 只有一条 `- insert:`（不 override 宿主行） |
+| 插件版本 | `package.json` 的 `version`（由发版流水线写回，不要手改；profile 里 link 安装，reload 后加载当前 dist）；`main`/`exports` → `dist/index.js`；bundle patch 只有一条 `- insert:`（不 override 宿主行） |
 | 发布形态 | npm **`@monsterlee/dsh-vibe-trading`**（public，`publishConfig.access=public`）+ GitHub 源码；**自动发版**：push main → CI 绿 → `.github/workflows/release.yml` 按 conventional commits（`scripts/dev/release-plan.mjs` + `release-policy.json`）算版本、写回 `package.json`、打 tag，再派发 `.github/workflows/publish.yml`（OIDC，tag ref）发布 npm + 生成 GitHub Release；`AUTO_RELEASE` 仓库变量是总开关 |
 | 适配运行时 | vibe-trading-ai **0.1.19**（`PINNED_VERSION`，单一事实源 `src/lib/config.ts`） |
 | 适配宿主 | DSH **0.2.2-rc.5**（实测/优化基线）；`engines.dsh = ">=0.2.2-rc.5"`（0.3.4 起，`check_manifest.mjs` 校验形态） |

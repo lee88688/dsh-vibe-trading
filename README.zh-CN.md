@@ -55,7 +55,8 @@ npm 包：[`@monsterlee/dsh-vibe-trading`](https://www.npmjs.com/package/@monste
 plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"
 ```
 
-需要可复现时把 `@latest` 换成具体版本（例如 `@0.4.x`）；npm 的 `latest` tag 指向当前发布版。
+需要可复现时把 `@latest` 换成 `npm view @monsterlee/dsh-vibe-trading version` 输出的具体版本；npm 的
+`latest` tag 指向当前发布版。
 然后**新建会话**：
 
 ```text

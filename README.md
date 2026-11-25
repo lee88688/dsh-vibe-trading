@@ -62,7 +62,8 @@ plugin manager:
 plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"
 ```
 
-For a reproducible install, replace `@latest` with the version you want (for example `@0.4.x`); npm's
+For a reproducible install, replace `@latest` with the exact version you want (see
+`npm view @monsterlee/dsh-vibe-trading version`); npm's
 `latest` tag tracks the current release. Then open a **new session**:
 
 ```text
