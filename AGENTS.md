@@ -1,7 +1,7 @@
 # AGENTS.md — dsh-vibe-trading 跨会话交接
 
 > 给后续 session / 其他 agent 的最小必要上下文。先读本文件，再看 [docs/README.md](docs/README.md)（文档索引）；细节都在 `docs/`。
-> 最后更新：2026-11-24（开源发布骨架：英文 README + README.zh-CN、CI、CONTRIBUTING/SECURITY/THIRD-PARTY-NOTICES、GitHub 模板；包名改为 npm scope `@monsterlee/dsh-vibe-trading`，发布 npm + GitHub 源码；新 clone 的 Node 校验不再依赖 git-ignored 采集物；版本号只在 `package.json` 维护，发布说明由 GitHub Release 自动生成）。
+> 最后更新：2026-11-25（**自动发版**：conventional commits → 版本推导 → tag → 派发 `publish.yml` OIDC 发布；新增 `commit` / `release-gate` skill 与 commit-msg 钩子，风险面变更必须有 `Release-Gate: verified`；发布说明改由提交生成）。
 > **公开 git 历史从 0.4.0 开始**（0.2.x–0.3.x 是公开前内部迭代；文中“0.2.7 起/0.3.x 起”是行为溯源，不是公开 tag）。
 
 ## 1. 项目是什么
@@ -39,12 +39,12 @@
 | 项 | 值 |
 |---|---|
 | 插件版本 | `package.json` 的 `version`（当前 `0.4.x`；profile 里 link 安装，reload 后加载当前 dist）；`main`/`exports` → `dist/index.js`；bundle patch 只有一条 `- insert:`（不 override 宿主行） |
-| 发布形态 | npm **`@monsterlee/dsh-vibe-trading`**（public，`publishConfig.access=public`）+ GitHub 源码；安装 target 用 scoped 包名或本地绝对路径；CI 见 `.github/workflows/ci.yml` |
+| 发布形态 | npm **`@monsterlee/dsh-vibe-trading`**（public，`publishConfig.access=public`）+ GitHub 源码；**自动发版**：push main → CI 绿 → `.github/workflows/release.yml` 按 conventional commits（`scripts/dev/release-plan.mjs` + `release-policy.json`）算版本、写回 `package.json`、打 tag，再派发 `.github/workflows/publish.yml`（OIDC，tag ref）发布 npm + 生成 GitHub Release；`AUTO_RELEASE` 仓库变量是总开关 |
 | 适配运行时 | vibe-trading-ai **0.1.19**（`PINNED_VERSION`，单一事实源 `src/lib/config.ts`） |
 | 适配宿主 | DSH **0.2.2-rc.5**（实测/优化基线）；`engines.dsh = ">=0.2.2-rc.5"`（0.3.4 起，`check_manifest.mjs` 校验形态） |
 | 工具面 | worker **127 个工具**（118 registry + 9 virtual）、**9 个工具组**、advertised **≤89**（worker 面 88 + 本地 `report_figures`；本机缺凭据时目录 83）、未暴露 **39**（hidden 25 + DSH 替代 9 + 网关替代 1 + dropped 4）；89 份技能。名称跟 VT agent 内部 registry 名（`pattern`/`options_pricing`/`options_payoff`），MCP 门面名只做映射；技能写入、shell、后台任务走 DSH 等价物。**逐工具清单见 [docs/tool-surface.md](docs/tool-surface.md)** |
 | 数字门禁 | **默认开启**（D18）；`report_figures` 工具化，正文不出现 figures 块；预算耗尽后默认只出轮末面板（`onFailure: panel`，D25） |
-| 本地基线 | `pnpm verify`（178 测试 + manifest）、`check_pin.mjs` 0 FAIL、`check_worker.py` 24/24（外网离线时可能少 1 项）、`check_grounding.py` 23/23 |
+| 本地基线 | `pnpm verify`（207 测试 + manifest）、`check_pin.mjs` 0 FAIL、`check_worker.py` 24/24（外网离线时可能少 1 项）、`check_grounding.py` 23/23 |
 
 改动历史看 `git log --oneline`；**任务/待办用 GitHub Issues**，本文件不维护任务清单。
 
@@ -110,6 +110,12 @@
     `README.md`、本文件或代码注释；单篇保持简短，不复述具体持仓/金额。个人 skill 放 `.dsh/skills/`
     （DSH 默认项目级 skill 根，rank 100，已 gitignore）。`_personal/` 与 `.dsh/` 不参与构建、测试与发布，
     删除它们不影响项目运行。
+15. **提交信息是发布输入（2026-11-25 起）**：提交必须符合 conventional commits（type 白名单与风险面在
+    `scripts/dev/release-policy.json`）；clone 后跑一次 `pnpm hooks:install` 安装 commit-msg 钩子。改动风险面
+    （`prompt/**`、`worker/**`、`toolsets.json`、`client.js`、`engines.dsh`）必须在提交正文写
+    `Release-Gate: verified (...)`——先按 skill `release-gate` 跑 `pnpm verify:all` + parity + 真机/UI 验收，
+    否则钩子拒绝提交、`release.yml` 拒绝打 tag。任何 commit 前先读 skill `commit`；**不要手改 `package.json`
+    的 version**，强制版本用 `Release-As: x.y.z` footer 或 Release workflow 的 `version` 输入。
 
 ## 3.5 本地目录（git-ignored，不属于发布物）
 
@@ -135,10 +141,17 @@ worker/vibe_trading_worker.py   长驻 Python worker（newline JSON-RPC）
 prompt/vibe-trading.md         移植的领域提示词（正文 ≈6.8k tok；激活后 prompt section ≈12.3k tok）
 toolsets.json                 staticCore 5 + 9 组 + virtualTools 6 + credentialGated + hidden/dropped + localTools
 client.js                    客户端半：状态芯片 + turnTail 门禁面板 + 插件页「配置」表单
-tests/                        178 个 node:test（import dist/）
-scripts/dev/release.mjs      发版辅助：status / bump / verify / tag / push --yes（不执行 npm publish）
+tests/                        207 个 node:test（import dist/）
+scripts/dev/release-plan.mjs  版本推导：conventional commits → bump / Release-As / 风险闸 / release notes
+scripts/dev/release-policy.json 唯一策略源：type→版本、风险路径、footer/Marker
+scripts/dev/check-commit.mjs  提交格式 + Release-Gate 检查（commit-msg 钩子与 CI 共用）
+.githooks/commit-msg          commit-msg 钩子（`pnpm hooks:install` 启用 core.hooksPath）
+scripts/dev/release.mjs       发版辅助：status / set / bump / verify / tag / push --yes（不执行 npm publish）
 scripts/validate/             check_manifest / check_worker / check_grounding / capture_worker_surface / capture_mcp_surface / check_pin / check_docs_links / check_private / gen_tool_surface_doc
-.agents/skills/release-npm/   发版 skill：只改 package.json、单独推 tag、OIDC 发布与自动 Release
+.agents/skills/commit/        提交规范（type/版本影响/footer/钩子）
+.agents/skills/release-gate/  风险面变更的验证清单与 Release-Gate footer
+.agents/skills/release-npm/   自动发版运维：强制/跳过版本、失败恢复、npm 与 Release 核对
+.github/workflows/release.yml CI 绿后自动 bump/tag/派发 publish.yml（workflow_run + workflow_dispatch）
 docs/                         见 [docs/README.md](docs/README.md)；工具面逐条见 [docs/tool-surface.md](docs/tool-surface.md)
 ```
 
@@ -147,9 +160,11 @@ docs/                         见 [docs/README.md](docs/README.md)；工具面�
 ```bash
 pnpm typecheck
 pnpm build
-node tests/run-all.mjs                    # 178/178
+node tests/run-all.mjs                    # 207/207
 node scripts/validate/check_manifest.mjs  # all pass
 node scripts/validate/check_pin.mjs       # PINNED_VERSION 与 _vendor tag/pyproject/uv.lock/venv 一致
+pnpm hooks:install                        # commit-msg 钩子（conventional commits + Release-Gate）
+pnpm release:plan                         # 预览自动发版会推出的版本（不发版）
 pnpm check:docs                           # 文档相对链接可达
 pnpm check:private                        # 个人内容/本机绝对路径扫描（denylist）
 pnpm check:grounding                      # 23/23
@@ -204,6 +219,12 @@ node scripts/dev/command-smoke.mjs        # 命令冒烟（不写 profile）
 - **发布形态 / npm 同名包**：本仓库发布为 `@monsterlee/dsh-vibe-trading`（scope `monsterlee`，public），profile 行 id
   仍是 `dsh-vibe-trading`。npm 上不带 scope 的 `dsh-vibe-trading` 是另一个实现，不要装错，也不要在 fork 里
   `npm publish`。`pnpm install` 的 `prepare` 构建 `dist/`；`dist/` 仍不进 git。
+- **自动发版（2026-11-25 起）**：`release.yml` 由 CI 成功触发（需仓库变量 `AUTO_RELEASE=true`），按
+  `vX.Y.Z..HEAD` 的 conventional commits 算下一个版本，写回 `package.json`、提交、打 tag，然后
+  `gh workflow run publish.yml --ref <tag>`；发布 job 跑在 tag ref 上，provenance 与 tag 一致。风险面
+  （`prompt/` `worker/` `toolsets.json` `client.js` `engines.dsh`）缺少 `Release-Gate: verified` 时只打 tag 前失败、
+  不会发布；`workflow_dispatch` 支持 `version` / `dry_run` / `force`。发布失败可对同一 tag 重跑 `publish.yml`，
+  不要重发同一版本。
 - **profile 设置**：值是 volatile Loader 引用，保存后原地提交（不重挂、不打断会话）；但 `skills.mode`
    只影响**下一次激活**（提示词在激活时组装），门禁/worker 参数对已激活会话立即生效；
   - 插件页的「配置」表单由 client 半注册（`plugins.bundle.config`，key `dsh-vibe-trading`），
@@ -240,4 +261,4 @@ node scripts/dev/command-smoke.mjs        # 命令冒烟（不写 profile）
 3. 跑一遍第 5 节本地校验 + `node scripts/validate/check_pin.mjs`，确认基线与版本 pin 都 OK；
 4. 若要做真实会话验证：按 [docs/development.md](docs/development.md) §4；
 5. 改提示词/工具面后：`pnpm build` → reload 插件（无活跃会话时）→ 新会话 `/vibe-trading on` 验证；
-6. 收尾：更新 [docs/development.md](docs/development.md)（测试/验收）、用户可见行为同步 `README.md` / `README.zh-CN.md`，必要时 [docs/decisions.md](docs/decisions.md) / [docs/architecture.md](docs/architecture.md)，提交。版本号只改 `package.json`；发布说明由 GitHub Release 自动生成，不维护 CHANGELOG。
+6. 收尾：更新 [docs/development.md](docs/development.md)（测试/验收）、用户可见行为同步 `README.md` / `README.zh-CN.md`，必要时 [docs/decisions.md](docs/decisions.md) / [docs/architecture.md](docs/architecture.md)，提交（提交前读 skill `commit`，风险面走 skill `release-gate`）。版本号由 release workflow 写回 `package.json`，不要手改；发布说明由提交记录生成，不维护 CHANGELOG。

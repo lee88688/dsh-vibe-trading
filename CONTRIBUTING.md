@@ -24,8 +24,9 @@ Prerequisites: **Node.js ≥ 24.9**, **pnpm 12.x**, **Python 3.12** (for the Pyt
 ```bash
 git clone https://github.com/lee88688/dsh-vibe-trading.git
 cd dsh-vibe-trading
-pnpm install      # "prepare" builds dist/
-pnpm verify       # typecheck + build + 178 tests + manifest
+pnpm install        # "prepare" builds dist/
+pnpm hooks:install  # commit-msg hook: conventional commits + release gate
+pnpm verify         # typecheck + build + 207 tests + manifest
 ```
 
 `dist/` is git-ignored. Maintainers publish the package as `@monsterlee/dsh-vibe-trading`; do not run
@@ -44,6 +45,30 @@ pnpm check:worker   # needs network access; a data-source failure can reduce the
 `check_pin.mjs` reports a warning instead of a failure; the source vendor directory is not required to
 build or test the plugin.
 
+## Commits and releases
+
+Releases are automated from commit messages, so the `commit-msg` hook is the one check you must install:
+
+```bash
+feat(worker): add a tool         # minor
+fix(gate): keep evidence         # patch
+docs: explain setup              # no release
+feat(api)!: drop the old shape   # breaking: minor before 1.0, major after
+```
+
+Only `feat`, `fix`, `perf`, and `revert` (plus `!` / `BREAKING CHANGE:`) move the version; `docs`,
+`chore`, `ci`, `test`, `style`, `build`, and `refactor` do not. `Release-As: x.y.z` forces a version and
+`[skip release]` excludes a commit.
+
+Changes to the release risk surface (`prompt/**`, `worker/**`, `toolsets.json`, `client.js`, or
+`package.json`'s `engines.dsh`) must carry a `Release-Gate: verified (...)` footer. Verify first:
+`pnpm verify:all`, the parity check, and a real-session/UI smoke as described in the `release-gate`
+skill. The hook rejects the commit and the release workflow refuses to tag until the footer is present.
+
+After a push to `main`, CI runs on Linux and Windows. When it is green, the Release workflow derives the
+next version, commits the bump, tags it, and dispatches the npm publish (OIDC). Do not bump
+`package.json` by hand; preview with `pnpm release:plan`.
+
 ## Checks
 
 Run the relevant subset before opening a pull request:
@@ -52,12 +77,13 @@ Run the relevant subset before opening a pull request:
 |---|---|
 | `pnpm typecheck` | TypeScript strict typecheck |
 | `pnpm build` | Emit `dist/` |
-| `node tests/run-all.mjs` | 178 Node unit tests |
+| `node tests/run-all.mjs` | 207 Node unit tests |
 | `node scripts/validate/check_manifest.mjs` | package/patch/locale/toolset consistency |
 | `pnpm check:docs` | relative Markdown links |
 | `pnpm check:private` | personal content and machine-specific paths |
 | `pnpm check:tools` | `docs/tool-surface.md` freshness |
 | `node scripts/validate/check_pin.mjs` | `PINNED_VERSION` vs `uv.lock` / vendor / captures |
+| `pnpm release:plan` | preview the version the next release would publish |
 | `pnpm check:grounding` | grounding adapter (needs `uv sync`) |
 | `pnpm check:worker` | live worker surface (needs network) |
 

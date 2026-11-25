@@ -85,8 +85,9 @@ Useful when developing the plugin or testing an unreleased change:
 ```bash
 git clone https://github.com/lee88688/dsh-vibe-trading.git
 cd dsh-vibe-trading
-pnpm install     # installs dev dependencies; "prepare" builds dist/
-pnpm verify      # optional: typecheck + build + 178 tests + manifest checks
+pnpm install        # installs dev dependencies; "prepare" builds dist/
+pnpm hooks:install  # commit-msg hook: conventional commits + release gate
+pnpm verify         # optional: typecheck + build + 207 tests + manifest checks
 ```
 
 Install the checkout directory with `plugin_manager install_bundle target = "<absolute path>"`, or use
@@ -127,9 +128,13 @@ pnpm verify       # typecheck + build + unit tests + manifest
 pnpm verify:all   # + docs/private/tools/pin/surface/worker/grounding
 ```
 
-Current baseline: **178/178** Node tests, manifest checks pass, and `check_pin.mjs` reports 0 failures.
+Current baseline: **207/207** Node tests, manifest checks pass, and `check_pin.mjs` reports 0 failures.
 The Python checks (`check:worker`, `check:grounding`) need `uv sync` and network access; see
 [docs/development.md](docs/development.md) §2. CI runs the Node checks on Linux and Windows.
+
+Releases are automated from [conventional commits](CONTRIBUTING.md#commits-and-releases): a green `main`
+CI run derives the next version, tags it, and publishes to npm. Changes to the release risk surface need
+a `Release-Gate: verified` footer.
 
 ## Documentation
 

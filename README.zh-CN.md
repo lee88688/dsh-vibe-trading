@@ -77,8 +77,9 @@ plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"
 ```bash
 git clone https://github.com/lee88688/dsh-vibe-trading.git
 cd dsh-vibe-trading
-pnpm install     # 安装开发依赖，并通过 prepare 构建 dist/
-pnpm verify      # 可选：类型检查 + 构建 + 178 个测试 + manifest 校验
+pnpm install        # 安装开发依赖，并通过 prepare 构建 dist/
+pnpm hooks:install  # 安装 commit-msg 钩子（提交规范 + Release-Gate）
+pnpm verify         # 可选：类型检查 + 构建 + 207 个测试 + manifest 校验
 ```
 
 在 DSH 里用 `plugin_manager install_bundle target = "<本仓库的绝对路径>"` 安装，或在
@@ -117,9 +118,12 @@ pnpm verify       # 类型检查 + 构建 + 单元测试 + manifest
 pnpm verify:all   # 再加 docs/private/tools/pin/surface/worker/grounding
 ```
 
-当前基线：**178/178** Node 测试、manifest 全部通过、`check_pin.mjs` 0 FAIL。Python 检查
+当前基线：**207/207** Node 测试、manifest 全部通过、`check_pin.mjs` 0 FAIL。Python 检查
 （`check:worker`、`check:grounding`）需要 `uv sync` 和外网，见
 [docs/development.md](docs/development.md) §2。CI 在 Linux 和 Windows 上运行 Node 部分。
+
+发布按 [conventional commits](CONTRIBUTING.md#commits-and-releases) 自动进行：main 上 CI 绿后推导版本、
+打 tag 并发布 npm；改到发布风险面时，提交必须带 `Release-Gate: verified` footer。
 
 ## 文档
 

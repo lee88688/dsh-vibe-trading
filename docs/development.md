@@ -28,9 +28,11 @@
 ```bash
 pnpm typecheck
 pnpm build
-node tests/run-all.mjs                    # 178/178
+node tests/run-all.mjs                    # 207/207
 node scripts/validate/check_manifest.mjs  # all pass
 node scripts/validate/check_pin.mjs       # PINNED_VERSION 与 _vendor tag/pyproject/uv.lock/venv 一致
+pnpm release:plan                         # 预览自动发版的下一个版本（不发版）
+pnpm hooks:install                        # 安装 commit-msg 钩子（conventional commits + Release-Gate）
 pnpm check:docs                           # 文档相对链接可达
 pnpm check:private                        # 个人内容/本机绝对路径扫描（denylist）
 pnpm check:grounding                      # 23/23
@@ -132,8 +134,8 @@ composer 状态芯片（窄屏 ≤560px 只留图标）、门禁 `turnTail` 面�
 
 - 升级运行时 pin：按 skill `vt-version-pin`（改 `PINNED_VERSION` + `pyproject.toml` + `uv.lock` + `_vendor` tag，
   跑 parity/capture/全套校验）。
-- 插件版本：**只改 `package.json` 的 `version`**。README/AGENTS/docs 不再写死插件版本（安装命令用
-  `@latest` 或 `@<version>` 示例）；`pnpm build` 后再 reload（无活跃 turn 时）。
+- 插件版本：**由发布流水线写回 `package.json` 的 `version`**，不要手改。README/AGENTS/docs 不写死版本
+  （安装命令用 `@latest` 或 `@<version>` 示例）；`pnpm build` 后再 reload（无活跃 turn 时）。
 - **DSH 宿主兼容**：`package.json` 的 `engines.dsh`（当前 `>=0.2.2-rc.5`）由 DSH app-boot 在 profile 加载时判定
   （`semver.satisfies(..., { includePrerelease: true })`，单一下限即可，见 decisions D24）；不满足时该 bundle 被
   跳过（`skippedBundles`）。升级 DSH 后先按 §4 做真实会话 smoke，然后把下限抬到新的优化基线（抬高 = 旧 profile 里
@@ -141,24 +143,49 @@ composer 状态芯片（窄屏 ≤560px 只留图标）、门禁 `turnTail` 面�
 - reload/升级会 dispose 活跃会话工具；0.2.7 起带 `/vibe-trading on` 历史的会话自动恢复，进行中的 turn 仍可能被打断。
 - 卸载：`plugin_manager remove_bundle`；profile 恢复，`~/.vibe-trading/dsh/`（venv/work/logs/config）保留，重装后正常。
 
-**发布步骤（GitHub + npm）**：
+**自动发版（2026-11-25 起）**：
 
-1. `pnpm verify:all` 全绿；至少复跑第 3 节真机验收与第 5 节场景矩阵（Python 检查需要 `uv sync` + 外网）。
-2. 确认工作区干净：`git status`；`dist/`、`scripts/env/*.json`、`worker-check.json`、`.venv/` 都不进提交。
-3. 只改 `package.json` 的 `version`，提交，打 annotated tag：
-   `git tag -a vX.Y.Z -m "dsh-vibe-trading X.Y.Z"`。
-4. **单独推送 tag**：`git push origin main`，再 `git push origin vX.Y.Z`。不要和 `main` 放在同一次 push；
-   `publish.yml` 会校验 tag 与 `package.json` 一致，跑 `pnpm verify:ci`，用 OIDC 发布 npm，并用
-   `gh release create --generate-notes` 自动创建 GitHub Release。发布说明看 GitHub Releases，不维护 `CHANGELOG.md`。
-5. **首次发布一个全新的 scoped 包**仍需要一次 token/bootstrap（npm 不能给尚不存在的包预配置 Trusted Publisher）；
-   本仓库 0.4.0 已完成这一步，之后不需要 `NPM_TOKEN`。
-6. 安装方式：`plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"`；需要可复现时把
-   `@latest` 换成 `@<version>`。源码安装仍可用 `clone + pnpm install + target=<绝对路径>`。发布后按 README
-   的安装步骤跑一遍冷启动验证。
+1. push main。CI 在 Linux/Windows 上跑 typecheck、build、207 个测试、manifest、docs/private/tools/pin、
+   `release-plan` CLI 冒烟；PR 还会严格检查提交信息。
+2. CI 成功后 `.github/workflows/release.yml` 接手（`workflow_run`，需要仓库变量 `AUTO_RELEASE=true`）：
+   - `scripts/dev/release-plan.mjs` 按 `vX.Y.Z..HEAD` 的 conventional commits 算版本：`feat`→minor、
+     `fix`/`perf`/`revert`→patch、破坏性→1.0 前 minor、`docs`/`chore`/`ci`/`test`/`style`/`build`/`refactor`
+     不发版、未知/非规范→patch（告警）、`Release-As: x.y.z` 强制版本。
+   - 风险面（`prompt/**`、`worker/**`、`toolsets.json`、`client.js`、`engines.dsh`）要求 tag 范围内有
+     `Release-Gate: verified` footer；缺失时 workflow 失败、不打 tag（补 footer 提交，或人工验证后
+     `workflow_dispatch` 带 `force=true`）。
+   - 写回 `package.json` → 提交 `chore(release): vX.Y.Z` → annotated tag → 推 main + tag。
+   - `gh workflow run publish.yml --ref vX.Y.Z` 显式派发（GITHUB_TOKEN 推的 tag 不会自己触发 workflow）。
+3. `.github/workflows/publish.yml` 在 **tag ref** 上跑 `pnpm verify:ci`，用 OIDC 发布 npm，并按提交生成
+   GitHub Release notes（发布 job 跑在 tag 上，provenance 与 tag 提交一致）。
+4. 验证发布：
 
-**半自动辅助**：`pnpm release:status` → `pnpm release:bump patch` → `pnpm release:verify` →
-`pnpm release:tag`，最后 `node scripts/dev/release.mjs push --yes`。脚本只改 `package.json`、建 tag、分别推
-`main` 和 tag；不会执行 `npm publish`，发布仍由 tag workflow 完成。完整规则见 skill `release-npm`。
+```bash
+npm view @monsterlee/dsh-vibe-trading version dist-tags --registry https://registry.npmjs.org/ --prefer-online
+gh release view vX.Y.Z --repo lee88688/dsh-vibe-trading
+gh run list --workflow=publish.yml --limit 3
+```
+
+**手动入口（异常 / 特殊版本）**：
+
+- 预览下一次版本：Actions → **Release** → Run workflow → `dry_run=true`；本地 `pnpm release:plan`。
+- 强制版本：`version=0.5.0`（必须大于当前 tag）；`Release-As: x.y.z` footer 等价。
+- 绕过 release gate：`force=true`（先按 skill `release-gate` 人工验证）。
+- 暂停自动发版：仓库变量 `AUTO_RELEASE=false`（或删除）。
+- 发布失败重试：Actions → **Publish npm** → Run workflow 选 `vX.Y.Z`，或
+  `gh workflow run publish.yml --ref vX.Y.Z`；不要重发同一版本。
+- 完全离线的兜底：`pnpm release:bump patch` → 提交 → `pnpm release:tag` →
+  `node scripts/dev/release.mjs push --yes`（只建 tag/推送，不执行 `npm publish`）。
+
+**提交前检查**：clone 后跑一次 `pnpm hooks:install` 安装 `commit-msg` 钩子；提交格式与 `Release-Gate`
+规则见 skill `commit` / `release-gate`。钩子可用 `SKIP_COMMIT_HOOK=1` 临时绕过，但 release workflow 仍会拦。
+
+**首次发布一个全新的 scoped 包**仍需要一次 token/bootstrap（npm 不能给尚不存在的包预配置 Trusted Publisher）；
+本仓库 0.4.0 已完成这一步，之后不需要 `NPM_TOKEN`。
+
+**安装方式**：`plugin_manager install_bundle target = "@monsterlee/dsh-vibe-trading@latest"`；需要可复现时把
+`@latest` 换成 `@<version>`。源码安装仍可用 `clone + pnpm install + target=<绝对路径>`。发布后按 README
+的安装步骤跑一遍冷启动验证。
 
 **npm token（仅首次发布/无 Trusted Publishing 时）**：npm 从 2025-11 起只支持 granular access token；
 classic token 已移除。需要 token 时：
@@ -176,7 +203,8 @@ classic token 已移除。需要 token 时：
 7. 配置好 Trusted Publishing 后**撤销该 token、删除 `NPM_TOKEN` secret**。npm 计划从 **2027-01** 起移除
    bypass-2FA token 的直接发布能力，长期方案应是 Trusted Publishing。
 
-**CI**：`.github/workflows/ci.yml` 在 Linux/Windows 上跑 typecheck、build、178 个测试、manifest、docs/private/
-tools/pin；不跑需要 `uv sync` 或外网的 Python 检查。CI 的 `check_pin` 对缺失的 `_vendor`/运行时 venv 只报 WARN。
-[`.github/workflows/publish.yml`](../.github/workflows/publish.yml) 在 `v*` tag 上用 OIDC 发布；也支持
-`workflow_dispatch` + `bootstrap=true`，用 `NPM_TOKEN` 完成首次发布。
+**CI**：`.github/workflows/ci.yml` 在 Linux/Windows 上跑 typecheck、build、207 个测试、manifest、docs/private/
+tools/pin、`release-plan` CLI 冒烟；PR 另外严格检查提交信息（`check-commit.mjs range --strict`）。不跑需要
+`uv sync` 或外网的 Python 检查；CI 的 `check_pin` 对缺失的 `_vendor`/运行时 venv 只报 WARN。
+[`.github/workflows/publish.yml`](../.github/workflows/publish.yml) 在 `v*` tag（以及 tag ref 的 `workflow_dispatch`）
+上用 OIDC 发布，并生成 GitHub Release；[`release.yml`](../.github/workflows/release.yml) 负责 CI 绿后的版本推导与打 tag。
