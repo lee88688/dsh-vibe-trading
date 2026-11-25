@@ -60,6 +60,16 @@ jobs:
       - name: Version pin
         run: node scripts/validate/check_pin.mjs
 
+      - name: Release plan (CLI smoke)
+        if: runner.os == 'Linux'
+        run: |
+          node scripts/dev/release-plan.mjs plan --json > release-plan.json
+          node -e "const p=require('./release-plan.json'); console.log('releasable:', p.releasable, 'version:', p.version)"
+
+      - name: Commit messages
+        if: runner.os == 'Linux' && github.event_name == 'pull_request'
+        run: node scripts/dev/check-commit.mjs range "${{ github.event.pull_request.base.sha }}..${{ github.sha }}" --strict
+
       - name: Package contents
         if: runner.os == 'Linux'
         run: npm pack --dry-run

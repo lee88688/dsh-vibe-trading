@@ -8,6 +8,11 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
+    # Keep the merged commit conventional so it does not trigger a release by
+    # accident: only docs/chore/ci/test/style/build/refactor are release-free.
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
     groups:
       npm-minor-patch:
         patterns: ["*"]
@@ -24,6 +29,9 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    commit-message:
+      prefix: "chore(deps)"
+      include: scope
     groups:
       github-actions-minor-patch:
         patterns: ["*"]
