@@ -135,6 +135,22 @@ function bump(kind = 'patch') {
   console.log('then: pnpm release:tag && node scripts/dev/release.mjs push --yes')
 }
 
+/** Write an explicit version (used by the automated release workflow). */
+function setVersion(version) {
+  if (!/^\d+\.\d+\.\d+$/.test(version ?? '')) {
+    throw new Error(`expected x.y.z, got ${version ?? '(missing)'}`)
+  }
+  const p = pkg()
+  if (p.version === version) {
+    console.log(`${p.name} is already at ${version}`)
+    return
+  }
+  const previous = p.version
+  p.version = version
+  writeFileSync(path.join(ROOT, 'package.json'), `${JSON.stringify(p, null, 2)}\n`, 'utf8')
+  console.log(`set ${p.name}: ${previous} -> ${version}`)
+}
+
 function tag() {
   ensureClean()
   ensureMain()
@@ -171,6 +187,7 @@ function help() {
 
   status                 show version, clean state, tags, npm latest, next patch
   bump <kind>            edit package.json only (patch|minor|major|x.y.z)
+  set <x.y.z>            write an explicit version (automated release workflow)
   verify                 run pnpm verify:ci
   tag                    create annotated vX.Y.Z tag locally
   push --yes             push main and the tag separately; CI publishes via OIDC
@@ -182,6 +199,7 @@ const [command = 'status', ...args] = process.argv.slice(2)
 try {
   if (command === 'status') printStatus()
   else if (command === 'bump') bump(args[0] ?? 'patch')
+  else if (command === 'set') setVersion(args[0])
   else if (command === 'verify') verify()
   else if (command === 'tag') tag()
   else if (command === 'push') push()

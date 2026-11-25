@@ -1,0 +1,21 @@
+{
+  "types": {
+    "feat": "minor",
+    "fix": "patch",
+    "perf": "patch",
+    "revert": "patch",
+    "refactor": null,
+    "docs": null,
+    "test": null,
+    "chore": null,
+    "ci": null,
+    "build": null,
+    "style": null
+  },
+  "unknownType": "patch",
+  "riskyPaths": ["prompt/**", "worker/**", "toolsets.json", "client.js"],
+  "riskyPackageFields": ["engines.dsh"],
+  "gateFooter": "Release-Gate",
+  "skipMarker": "[skip release]",
+  "releaseAsFooter": "Release-As"
+}
