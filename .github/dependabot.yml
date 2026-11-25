@@ -18,7 +18,8 @@ updates:
 
   # One grouped PR instead of one per action (the first run opened three).
   # Major bumps (e.g. checkout v8) stay separate: their breaking changes are
-  # reviewed on their own, and cooldown keeps them out of the first days.
+  # reviewed on their own. Only default-days is allowed here - Dependabot
+  # rejects semver-*-days for the github-actions ecosystem.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -29,4 +30,3 @@ updates:
         update-types: ["minor", "patch"]
     cooldown:
       default-days: 7
-      semver-major-days: 14
