@@ -63,6 +63,7 @@ jobs:
       - name: Release plan (CLI smoke)
         if: runner.os == 'Linux'
         run: |
+          git fetch --tags --force origin
           node scripts/dev/release-plan.mjs plan --json > release-plan.json
           node -e "const p=require('./release-plan.json'); console.log('releasable:', p.releasable, 'version:', p.version)"
 

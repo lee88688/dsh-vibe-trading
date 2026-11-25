@@ -293,7 +293,11 @@ function git(args) {
 
 function lastTag(to = 'HEAD') {
   try {
-    return git(['describe', '--tags', '--abbrev=0', to])
+    return execFileSync('git', ['describe', '--tags', '--abbrev=0', to], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
   } catch {
     return null
   }
@@ -377,18 +381,22 @@ function runPlan(args) {
   if (!parseVersion(fromVersion)) throw new Error(`cannot derive a version from ${fromRef}`)
 
   const pkg = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
-  const diff = fromRef ? git(['diff', `${fromRef}..${to}`, '--', 'package.json']) : git(['show', `${to}:package.json`])
-  const fields = detectPackageFieldChanges(diff)
+  const fields = fromRef
+    ? detectPackageFieldChanges(git(['diff', `${fromRef}..${to}`, '--', 'package.json']))
+    : []
 
   const result = analyze({
     commits: collectCommits(fromRef, to),
     fromVersion,
     packageVersion: pkg.version,
-    changedFiles: changedFiles(fromRef, to),
+    changedFiles: fromRef ? changedFiles(fromRef, to) : [],
     enginesChanged: fields.includes('engines.dsh'),
     forcedVersion: args.version ?? null,
     repository: repositoryUrl(pkg),
   })
+  if (!fromRef) {
+    result.warnings.push('no release tag found; treating this as the first release and skipping the gate diff')
+  }
 
   if (args['notes-file']) writeFileSync(args['notes-file'], result.notes, 'utf8')
   writeGitHubOutput(args['github-output'], result)
@@ -396,7 +404,7 @@ function runPlan(args) {
   else printSummary(result)
 
   if (result.gate.required && !result.gate.satisfied) {
-    console.log(
+    console.error(
       `\ngate: changed ${[...result.riskFiles, result.gate.enginesChanged ? 'package.json#engines.dsh' : '']
         .filter(Boolean)
         .join(', ')} without a Release-Gate: verified footer`,
