@@ -121,7 +121,8 @@ jobs:
         if: |
           steps.plan.outputs.releasable == 'true' &&
           github.event_name == 'workflow_dispatch' && inputs.dry_run == true
-        run: echo "::notice::Dry run: would release v${{ steps.plan.outputs.version }}."
+        run: |
+          echo "::notice::Dry run: would release v${{ steps.plan.outputs.version }}."
 
       - name: Bump, commit, tag, and push
         if: |
