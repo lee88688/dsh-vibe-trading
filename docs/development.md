@@ -171,7 +171,7 @@ gh run list --workflow=publish.yml --limit 3
 - 预览下一次版本：Actions → **Release** → Run workflow → `dry_run=true`；本地 `pnpm release:plan`。
 - 强制版本：`version=0.5.0`（必须大于当前 tag）；`Release-As: x.y.z` footer 等价。
 - 绕过 release gate：`force=true`（先按 skill `release-gate` 人工验证）。
-- 暂停自动发版：仓库变量 `AUTO_RELEASE=false`（或删除）。
+- 暂停自动发版：仓库变量 `AUTO_RELEASE=false`（或删除）；重新开启：`gh variable set AUTO_RELEASE --body true`。
 - 发布失败重试：Actions → **Publish npm** → Run workflow 选 `vX.Y.Z`，或
   `gh workflow run publish.yml --ref vX.Y.Z`；不要重发同一版本。
 - 完全离线的兜底：`pnpm release:bump patch` → 提交 → `pnpm release:tag` →
