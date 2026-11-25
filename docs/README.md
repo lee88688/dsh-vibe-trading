@@ -12,7 +12,7 @@
 | [../AGENTS.md](../AGENTS.md) | 交接 | 跨会话上下文：规则、环境、代码地图、调试、测试入口 |
 | [architecture.md](architecture.md) | 设计 | 设计事实：边界、架构、命令、worker、工具、技能、提示词、沙箱、预算、失败模式 |
 | [tool-surface.md](tool-surface.md) | 参考 | **工具面对照表**（生成物）：已暴露/DSH 接管/需凭据/直接禁用，逐工具附理由；升级 VT 时按 §8 维护 |
-| [decisions.md](decisions.md) | 决策 | 已定设计决策（D1–D27），被取代的决策保留原文 |
+| [decisions.md](decisions.md) | 决策 | 已定设计决策（D1–D28），被取代的决策保留原文 |
 | [number-verification.md](number-verification.md) | 机制 | 数字核实三层机制（identity / evidence / figures）与展示层 |
 | [data-sources.md](data-sources.md) | 参考 | 行情数据来源、失败原因、用户侧配置与排查 |
 | [development.md](development.md) | 开发 | 本地环境、校验命令、真机验收、真实会话测试、场景矩阵、发版 |

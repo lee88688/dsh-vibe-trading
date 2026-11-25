@@ -133,7 +133,7 @@ pnpm verify:all   # 再加 docs/private/tools/pin/surface/worker/grounding
 | [AGENTS.md](AGENTS.md) | 跨会话交接：规则、环境、代码地图、调试 |
 | [docs/README.md](docs/README.md) | 文档索引与维护约定 |
 | [docs/architecture.md](docs/architecture.md) | 设计事实与组件边界 |
-| [docs/decisions.md](docs/decisions.md) | 已定设计决策（D1–D27） |
+| [docs/decisions.md](docs/decisions.md) | 已定设计决策（D1–D28） |
 | [docs/number-verification.md](docs/number-verification.md) | 数字核实机制与计算工具 |
 | [docs/data-sources.md](docs/data-sources.md) | 行情数据来源、失败原因与用户配置 |
 | [docs/development.md](docs/development.md) | 开发环境、校验、真机验收、真实会话测试、发版 |
